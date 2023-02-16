@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "/ecMRzHmqqE9k9v7p8YIcdLU84+eWsrcnj0XI+WG7Mg=",
+  "Source": "PartnerPOI.API",
+  "BasePath": "_content/PartnerPOI.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
