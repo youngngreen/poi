@@ -7,22 +7,22 @@ using PartnerPOI.API.Features.PartnerType;
 
 namespace PartnerPOI.API.PipelineBehaviors.PreProcessor;
 
-public class HeaderValidator: IGlobalPreProcessor
+public class HeaderValidator : IGlobalPreProcessor
 {
     public Task PreProcessAsync(object req, HttpContext ctx, List<ValidationFailure> failures, CancellationToken ct)
     {
         if (req is BaseRequest r)
         {
-            var userId = ctx.Request.Headers["userID"].SingleOrDefault();
-            if (userId == null)
+            var serviceIdentifiedByPartner = ctx.Request.Headers["ServiceIdentifiedByPartner"].SingleOrDefault();
+            if (serviceIdentifiedByPartner == null)
             {
-                failures.Add(new("HeaderKey", "Unable to retrieve (userID) from header"));
+                failures.Add(new("HeaderKey", "Unable to retrieve (serviceIdentifiedByPartner) from header"));
                 throw new HeaderValidationException("Header validation failures");
             }
-            
-            r.UserID = userId;
+
+            r.ServiceIdentifiedByPartner = serviceIdentifiedByPartner;
         }
-        
+
         return Task.CompletedTask;
     }
 }

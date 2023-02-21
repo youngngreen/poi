@@ -9,7 +9,8 @@ public class PartnerPOIContext : DbContext
         : base(options) { }
 
     public DbSet<PartnerType> PartnerType { get; set; }
-    public DbSet<InternalPoint> TbMInternalPointH { get; set; }
+    public DbSet<TbMInternalPointH> TbMInternalPointH { get; set; }
+    public DbSet<TbMInternalPointD> TbMInternalPointD { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -22,10 +23,19 @@ public class PartnerPOIContext : DbContext
         });
 
         //modelBuilder.Entity<InternalPoint>().HasKey(b => b.internalPointSettingID);
-        modelBuilder.Entity<InternalPoint>(entity =>
+        modelBuilder.Entity<TbMInternalPointH>(entity =>
         {
-            entity.Property(e => e.internalPointSettingID).HasColumnName("internalPointSettingID");
+            entity.Property(e => e.InternalPointSettingID).HasColumnName("internalPointSettingID");
         });
+
+        //modelBuilder.Entity<TbMInternalPointD>(entity =>
+        //{
+        //    entity.Property(e => e.InternalPointSettingID).HasColumnName("internalPointSettingID");
+        //});
+
+        modelBuilder
+            .Entity<TbMInternalPointD>().HasKey(b => new { b.InternalPointSettingID, b.SeqNo});
+
 
     }
 }

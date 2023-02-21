@@ -38,22 +38,22 @@ public class Get
         public override async Task HandleAsync(Request req, CancellationToken ct)
         {
             var totalRows = _dbContext.TbMInternalPointH.Where(
-                x => x.serviceIdentifiedByPartner.Equals(req.serviceIdentifiedByPartner)
-                    && x.internalPointID.Equals(req.internalPointID)
-                    && x.customerLevel.Equals(req.customerLevel)
-                    && x.isDeleted.Equals(req.isDeleted)
+                x => x.ServiceIdentifiedByPartner.Equals(req.serviceIdentifiedByPartner)
+                    && x.InternalPointID.Equals(req.internalPointID)
+                    && x.CustomerLevel.Equals(req.customerLevel)
+                    && x.IsDeleted.Equals(req.isDeleted)
                 ).ToList();
 
             var result = _dbContext.TbMInternalPointH.Where(
-                x => x.serviceIdentifiedByPartner.Equals(req.serviceIdentifiedByPartner)
-                    && x.internalPointID.Equals(req.internalPointID)
-                    && x.customerLevel.Equals(req.customerLevel)
-                    && x.isDeleted.Equals(req.isDeleted)
+                x => x.ServiceIdentifiedByPartner.Equals(req.serviceIdentifiedByPartner)
+                    && x.InternalPointID.Equals(req.internalPointID)
+                    && x.CustomerLevel.Equals(req.customerLevel)
+                    && x.IsDeleted.Equals(req.isDeleted)
                 ).Skip(req.startRecord - 1).Take(req.noOfRecord).ToList();
 
             Console.WriteLine("rs length" + totalRows.Count.ToString());
 
-            var response = new Response<List<Models.InternalPoint>>
+            var response = new Response<List<Models.TbMInternalPointH>>
             {
                 retrieveRecord = req.noOfRecord,
                 totalRecord = totalRows.Count,

@@ -1,48 +1,24 @@
 ﻿using FastEndpoints;
 using FluentValidation;
-using Microsoft.AspNetCore.Http.HttpResults;
 using PartnerPOI.API.Data;
 using PartnerPOI.API.DTOs;
+using static PartnerPOI.API.DTOs.InternalPointCreateRequest;
 
 namespace PartnerPOI.API.Features.InternalPoint;
 
 public class Create
 {
-    public class Event
-    {
-        public int unitPerPoint { get; set; }
-        public string expireDatePattern { get; set; } = null!;
-        public int multiplier { get; set; }
-        public string effectiveFrom { get; set; } = null!;
-        public string effectiveTo { get; set; } = null!; 
-    }
-    public class Request : BaseRequest
-    {
-        ///
-        public string? requestUserID { get; set; }
-        public string? serviceIdentifiedByPartner {get; set; }
-        public string? internalPointID {get; set; }
-        public string? internalPointDesc { get; set; }
-        public string? customerLevel { get; set; }
-        public Event[]? eventList { get; set; }
-
-
-    }
-    public class Response: BaseResponse
-    {
-
-    }
-    public class Validator: Validator<Request>
+    public class Validator: Validator<InternalPointCreateRequest>
     {
         public Validator()
         {
-            RuleFor(x => x.requestUserID)
+            RuleFor(x => x.RequestUserID)
                 .NotNull()
                 .NotEmpty()
                 .WithMessage("requestUserID's is required!");
         }
     }
-    public class Endpoint: Endpoint<Request>
+    public class Endpoint: Endpoint<InternalPointCreateRequest>
     {
         private readonly PartnerPOIContext _dbContext;
         public Endpoint(PartnerPOIContext dbContext) => _dbContext = dbContext;
@@ -52,25 +28,51 @@ public class Create
             AllowAnonymous();
             DontCatchExceptions();
         }
-        public override async Task HandleAsync(Request req, CancellationToken ct)
+        public override async Task HandleAsync(InternalPointCreateRequest req, CancellationToken ct)
         {
             var dateNow = DateTime.UtcNow;
-            var model = new Models.InternalPoint
+            // (3). Create Internal Point Setting
+            // 3.1 Insert Internal Point Setting Header
+            var model = new Models.TbMInternalPointH
             {
-                //internalPointSettingID = "xx",
-                serviceIdentifiedByPartner=req.serviceIdentifiedByPartner,
-                internalPointID=req.internalPointID,
-                internalPointDesc = req.internalPointDesc,
-                customerLevel = req.customerLevel,
-                isDeleted = false,
-                createdDate = dateNow,
-                createdBy = "user ID" + req.requestUserID,
-                updatedDate = dateNow,
-                updatedBy = "user ID" + req.requestUserID,
+                InternalPointID = req.InternalPointID,
+                InternalPointDesc = req.InternalPointDesc,
+                CustomerLevel = req.CustomerLevel,
+                IsDeleted = false,
+                CreatedDate = dateNow,
+                CreatedBy = "user ID" + req.RequestUserID,
+                UpdatedDate = dateNow,
+                UpdatedBy = "user ID" + req.RequestUserID
             };
             await _dbContext.TbMInternalPointH.AddAsync(model, ct);
-            await _dbContext.SaveChangesAsync(ct);
-            var response = new Response
+            var data1 = await _dbContext.SaveChangesAsync(ct);
+
+            // 3.2 Insert Internal Point Setting Detail
+            int i = 1; // for counting the index
+            foreach (EventList Event in req.EventLists)
+            {
+                Random rnd = new Random();
+                var detailModel = new Models.TbMInternalPointD
+                { 
+                    InternalPointSettingID = model.InternalPointSettingID,
+                    SeqNo = i,
+                    UnitPerPoint = (int)Event.UnitPerPoint,
+                    Multiplier = (int)Event.Multiplier,
+                    EffectiveFrom = DateTime.Parse(Event.EffectiveFrom),
+                    EffectiveTo = DateTime.Parse(Event.EffectiveTo),
+                    ExpireDatePattern = Event.ExpireDatePattern,
+                    CreatedDate = dateNow,
+                    CreatedBy = req.RequestUserID,
+                    UpdatedDate = dateNow,
+                    UpdatedBy = req.RequestUserID
+                };
+                await _dbContext.TbMInternalPointD.AddAsync(detailModel, ct);
+                await _dbContext.SaveChangesAsync(ct);
+                i++;
+            }
+
+            // (4). Prepare Normal API Response
+            var response = new InternalPointCreateResponse
             {
                 StatusCode = "000",
                 Message = "Successfully"

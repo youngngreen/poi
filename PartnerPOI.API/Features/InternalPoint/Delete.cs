@@ -6,16 +6,8 @@ namespace PartnerPOI.API.Features.InternalPoint;
 
 public class Delete
 {
-    public class Request: BaseRequest
-    {
-        public string requestUserID { get; set; }
-        public string serviceIdentifiedByPartner { get; set; }
-        public string partnerPoinID { get; set; }
-        public string customerJourneyID { get; set; }
-    }
-    public class Response : BaseResponse { }
-    public class Validator: Validator<Request> { }
-    public class Endpoint: Endpoint<Request>
+    public class Validator: Validator<InternalPointDeleteRequest> { }
+    public class Endpoint: Endpoint<InternalPointDeleteRequest>
     {
         private readonly PartnerPOIContext _dbContext;
         public Endpoint(PartnerPOIContext dbContext) => _dbContext = dbContext;
@@ -25,16 +17,17 @@ public class Delete
             AllowAnonymous();
             DontCatchExceptions();
         }
-        public override async Task HandleAsync(Request req, CancellationToken ct)
+        public override async Task HandleAsync(InternalPointDeleteRequest req, CancellationToken ct)
         {
             var internalPoint = _dbContext.TbMInternalPointH.SingleOrDefault(
-                    x => x.serviceIdentifiedByPartner.Equals(req.serviceIdentifiedByPartner)
-                        && x.isDeleted == false);
+                    x => x.InternalPointID.Equals(req.InternalPointID)
+                        && x.CustomerLevel.Equals(req.CustomerLevel)
+                        && x.IsDeleted == false);
 
             if(internalPoint == null)
             {
-                var m = $"Internal point not found by given id = {req.partnerPoinID}";
-                await SendAsync(new Response
+                var m = $"Internal point not found by given id = {req.InternalPointID}";
+                await SendAsync(new InternalPointDeleteResponse
                 {
                     StatusCode = "000",
                     Message = m
@@ -42,14 +35,14 @@ public class Delete
                 return;
             }
 
-            internalPoint.isDeleted = true;
-            internalPoint.updatedDate= DateTime.UtcNow;
-            internalPoint.updatedBy = req.UserID;
+            internalPoint.IsDeleted = true;
+            internalPoint.UpdatedDate= DateTime.UtcNow;
+            internalPoint.UpdatedBy = req.RequestUserID;
 
             _dbContext.TbMInternalPointH.Update(internalPoint);
             await _dbContext.SaveChangesAsync(ct);
 
-            var response = new Response
+            var response = new InternalPointDeleteResponse
             {
                 StatusCode = "000",
                 Message = "Successfully",
